@@ -66,6 +66,7 @@ static ASTNode* primary(Parser* parser) {
     if (match(parser, TOKEN_NUMBER)) {
         char* end;
         double value = strtod(parser->previous.start, &end);
+        CL_UNUSED(end);  // Future: could validate conversion was successful
         return ast_create_number(value, parser->previous.line, parser->previous.column);
     }
     
@@ -90,7 +91,11 @@ static ASTNode* unary(Parser* parser) {
         Token op = parser->previous;
         ASTNode* operand = unary(parser);
         
-        ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
+        ASTNode* node = (ASTNode*)CL_MALLOC(sizeof(ASTNode));
+        if (node == NULL) {
+            ast_free(operand);
+            return NULL;
+        }
         node->type = AST_UNARY_OP;
         node->line = op.line;
         node->column = op.column;

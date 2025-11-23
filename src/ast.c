@@ -3,8 +3,16 @@
 #include <stdio.h>
 #include "ast.h"
 
+static char* string_duplicate(const char* str, size_t len) {
+    char* result = (char*)CL_MALLOC(len + 1);
+    if (result == NULL) return NULL;
+    memcpy(result, str, len);
+    result[len] = '\0';
+    return result;
+}
+
 ASTNode* ast_create_number(double value, size_t line, size_t column) {
-    ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
+    ASTNode* node = (ASTNode*)CL_MALLOC(sizeof(ASTNode));
     if (node == NULL) return NULL;
     
     node->type = AST_NUMBER;
@@ -15,19 +23,23 @@ ASTNode* ast_create_number(double value, size_t line, size_t column) {
 }
 
 ASTNode* ast_create_identifier(const char* name, size_t line, size_t column) {
-    ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
+    ASTNode* node = (ASTNode*)CL_MALLOC(sizeof(ASTNode));
     if (node == NULL) return NULL;
     
     node->type = AST_IDENTIFIER;
     node->line = line;
     node->column = column;
-    node->data.identifier = strdup(name);
+    node->data.identifier = string_duplicate(name, strlen(name));
+    if (node->data.identifier == NULL) {
+        free(node);
+        return NULL;
+    }
     return node;
 }
 
 ASTNode* ast_create_binary_op(TokenType op, ASTNode* left, ASTNode* right, 
                               size_t line, size_t column) {
-    ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
+    ASTNode* node = (ASTNode*)CL_MALLOC(sizeof(ASTNode));
     if (node == NULL) return NULL;
     
     node->type = AST_BINARY_OP;
